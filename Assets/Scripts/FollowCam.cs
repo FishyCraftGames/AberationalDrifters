@@ -11,6 +11,8 @@ public class FollowCam : MonoBehaviour
     public float MinDist;
     public Transform cam;
 
+    public AudioSource wind;
+
     public float screenshakePosStrength = 0.3f;
     public float screenshakeRotStrength;
 
@@ -51,5 +53,7 @@ public class FollowCam : MonoBehaviour
             Vector3 randomRot = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f)) * screenshakeRotStrength * (target.root.GetComponent<Rigidbody>().velocity.magnitude / 260);
             cam.localEulerAngles = randomRot;
         }
+
+        wind.volume = Mathf.Clamp(target.root.GetComponent<Rigidbody>().velocity.magnitude / 80, 0, 1);
     }
 }
