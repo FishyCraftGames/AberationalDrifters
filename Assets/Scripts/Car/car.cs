@@ -81,7 +81,7 @@ public class car : MonoBehaviour
     {
         isGrounded = false;
 
-        Debug.Log(rb.velocity.magnitude * 3.6f);
+        Debug.Log(rb.velocity.magnitude * 3.6f + " km/h");
 
         accelInput = Mathf.Clamp((Input.GetAxis("Vertical") + (Input.GetAxis("R2")+1) - (Input.GetAxis("L2")+1)), -1, 1) * 35000;
 
@@ -89,7 +89,7 @@ public class car : MonoBehaviour
         if (Input.GetKey(KeyCode.Space) || Input.GetButton("Fire1"))
             handbrake = true;
 
-        float x = carTopSpeed / rb.velocity.magnitude;
+        float x = rb.velocity.magnitude / carTopSpeed;
 
         engineA.volume = engineVolume.Evaluate(x) * Mathf.Clamp(accelInput/35000, 0.3f, 1);
         engineA.pitch = enginePitch.Evaluate(x) * Mathf.Clamp(accelInput/35000, 0.8f, 1);
@@ -150,58 +150,71 @@ public class car : MonoBehaviour
 
             float tireGripPercent = Mathf.Abs(100 / tireVel.magnitude * steeringVel)/100;
 
-            if(isGrounded)
-                audio.volume = Mathf.Clamp((tireGripPercent + (rb.velocity.magnitude / carTopSpeed)) / 2 - 0.1f, 0, 1);
-            else
-                audio.volume = 0;
-
             if (isGrounded && tireGripPercent > 0.4f) 
             {
+                audio.volume = Mathf.Clamp((tireGripPercent * (tireVel.magnitude / 15)), 0, 1);
                 r.emitting = true;
                 p.Play();
             }
             else
             {
+                audio.volume = 0;
                 r.emitting = false;
                 p.Stop();
             }
 
 
             float velChange = 0;
-            if (true) 
+            //i know that what im about to do is wrong but it feels better
+            //dond tjudge me for doing fake math
+            velChange = -steeringVel * (tireGrip.Evaluate(tireGripPercent) + tireGrip.Evaluate(rb.velocity.magnitude / carTopSpeed)) / 2;
+            float velAcceleration = velChange / Time.fixedDeltaTime;
+
+            if (isGrounded)
             {
-                velChange = -steeringVel * (tireGrip.Evaluate(tireGripPercent) + tireGrip.Evaluate(rb.velocity.magnitude/carTopSpeed)) /2;
+                rb.AddForceAtPosition(steeringDir * TireMass * velAcceleration, a.position);
             }
             else
             {
-                velChange = -steeringVel * 0.05f;
+                rb.AddForceAtPosition(steeringDir * TireMass * velAcceleration * 0.5f, a.position);
             }
-            float velAcceleration = velChange / Time.fixedDeltaTime;
-
-            rb.AddForceAtPosition(steeringDir * TireMass * velAcceleration, a.position);
 
             //Driving
-            if (!handbreak)
+            if (isGrounded)
             {
-                if (c > 0f)
+                if (!handbreak)
                 {
-                    Vector3 accelDir = a.forward;
+                    if (c > 0f)
+                    {
+                        Vector3 accelDir = a.forward;
 
-                    float carSpeed = Vector3.Dot(transform.forward, rb.velocity);
-                    float normalizeSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
-                    float avaliableTorque = powerCurve.Evaluate(normalizeSpeed) * c * 2;
+                        float carSpeed = Vector3.Dot(transform.forward, rb.velocity);
+                        float normalizeSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
+                        float avaliableTorque = powerCurve.Evaluate(normalizeSpeed) * c * 2;
 
-                    rb.AddForceAtPosition(accelDir * avaliableTorque, a.position);
-                }
-                else if (c < 0f)
-                {
-                    Vector3 accelDir = -a.forward;
+                        rb.AddForceAtPosition(accelDir * avaliableTorque, a.position);
+                    }
+                    else if (c < 0f)
+                    {
+                        Vector3 accelDir = -a.forward;
 
-                    float carSpeed = Vector3.Dot(transform.forward, rb.velocity);
-                    float normalizeSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
-                    float avaliableTorque = powerCurve.Evaluate(normalizeSpeed) * Mathf.Abs(c / 2);
+                        float carSpeed = Vector3.Dot(transform.forward, rb.velocity);
+                        float normalizeSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
+                        float avaliableTorque = powerCurve.Evaluate(normalizeSpeed) * Mathf.Abs(c / 2);
 
-                    rb.AddForceAtPosition(accelDir * avaliableTorque, a.position);
+                        rb.AddForceAtPosition(accelDir * avaliableTorque, a.position);
+                    }
+                    else
+                    {
+                        Vector3 accelDir = a.forward;
+                        Vector3 tireVel2 = rb.GetPointVelocity(a.position);
+
+                        float steeringVel2 = Vector3.Dot(accelDir, tireVel2);
+                        float velChange2 = -steeringVel2 * rollGrip;
+                        float velAcceleration2 = velChange2 / Time.fixedDeltaTime;
+
+                        rb.AddForceAtPosition(accelDir * TireMass * velAcceleration2, a.position);
+                    }
                 }
                 else
                 {
@@ -209,22 +222,11 @@ public class car : MonoBehaviour
                     Vector3 tireVel2 = rb.GetPointVelocity(a.position);
 
                     float steeringVel2 = Vector3.Dot(accelDir, tireVel2);
-                    float velChange2 = -steeringVel2 * rollGrip;
+                    float velChange2 = -steeringVel2 * 1;
                     float velAcceleration2 = velChange2 / Time.fixedDeltaTime;
 
                     rb.AddForceAtPosition(accelDir * TireMass * velAcceleration2, a.position);
                 }
-            }
-            else
-            {
-                Vector3 accelDir = a.forward;
-                Vector3 tireVel2 = rb.GetPointVelocity(a.position);
-
-                float steeringVel2 = Vector3.Dot(accelDir, tireVel2);
-                float velChange2 = -steeringVel2 * 1;
-                float velAcceleration2 = velChange2 / Time.fixedDeltaTime;
-
-                rb.AddForceAtPosition(accelDir * TireMass * velAcceleration2, a.position);
             }
 
             return (offset);
@@ -233,13 +235,5 @@ public class car : MonoBehaviour
         {
             return (length);
         }
-    }
-
-    float ToFloat(bool a)
-    {
-        float b = 0;
-        if (a)
-            b = 1;
-        return b;
     }
 }

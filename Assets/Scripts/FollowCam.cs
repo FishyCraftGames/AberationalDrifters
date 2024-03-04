@@ -8,6 +8,7 @@ public class FollowCam : MonoBehaviour
 
     public Transform target;
     public float speed = 0.25f;
+    public float Height = 1.5f;
     public float MinDist;
     public Transform cam;
 
@@ -23,21 +24,36 @@ public class FollowCam : MonoBehaviour
 
     void FixedUpdate()
     {
+
+        Vector3 speedDir = target.root.GetComponent<Rigidbody>().velocity;
+        float targetSpeed = speedDir.magnitude;
+
+        float heightOffset = Height * (1 - Mathf.Clamp(targetSpeed / 160, 0, 1));
         Physics.Raycast(target.position + Vector3.up * 500f, Vector3.down, out RaycastHit TargetRay, 999f, mask);
-        float offset = (target.position + Vector3.up * 2.4f - TargetRay.point).y;
+        float offset = (target.position + Vector3.up * heightOffset - TargetRay.point).y;
+
         if (offset > MinDist)
         {
-            transform.position = Vector3.Lerp(transform.position, target.position + Vector3.up * 2.4f, speed);
+            transform.position = Vector3.Lerp(transform.position, target.position + Vector3.up * heightOffset, speed);
         }
         else
         {
             transform.position = Vector3.Lerp(transform.position, TargetRay.point + Vector3.up * MinDist, speed);
         }
 
-        Vector3 speedDir = target.root.GetComponent<Rigidbody>().velocity;
-        if (speedDir.magnitude > 3)
+        if (targetSpeed > 3)
             speedDir = speedDir.normalized * 3;
-        transform.LookAt(Vector3.Lerp(lastTarget, target.root.position + speedDir, 0.25f));
+
+        if (Player.instance.inCar)
+        {
+            transform.LookAt(Vector3.Lerp(lastTarget, target.root.position + speedDir, 0.25f));
+        }
+        else
+        {
+            heightOffset = 5;
+            transform.LookAt(Player.instance.transform.position);
+        }
+
         lastTarget = target.root.position + speedDir;
 
         //post-processing
