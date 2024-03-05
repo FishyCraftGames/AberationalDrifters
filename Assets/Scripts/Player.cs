@@ -74,7 +74,7 @@ public class Player : MonoBehaviour
             rot.y += 10 * Input.GetAxis("Horizontal") * sensitivity;
 
             rot.z = -5 * Input.GetAxis("Horizontal");
-            rot.z = Mathf.Clamp(rot.z, -5, 5);
+            rot.z = Mathf.Clamp(rot.z, -15, 15);
             transform.rotation = Quaternion.Euler(rot);
 
             percentage = rot.x / 45;
@@ -95,7 +95,10 @@ public class Player : MonoBehaviour
         Instantiate(Explosion, transform.position, transform.rotation);
         explosionPoint = transform.position - Vector3.down * 5f;
 
+        transform.eulerAngles = new Vector3(0f, transform.eulerAngles.y, 0f);
+
         rb.angularVelocity = Vector3.zero;
+        rb.velocity = Vector3.zero;
         Vector3 force = activeCar.GetComponent<Rigidbody>().velocity * 3;
         force.x = 0;
         force.z = 0;
