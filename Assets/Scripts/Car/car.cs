@@ -72,40 +72,57 @@ public class car : MonoBehaviour
 
     public bool isGrounded;
 
+    private float steering;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
     }
 
+    private void Update()
+    {
+        if (Player.instance.activeCar == this)
+        {
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Fire1"))
+            {
+                handbreak.pitch = Random.Range(0.9f, 1.1f);
+                handbreak.Play();
+            }
+        }
+    }
+
     void FixedUpdate()
     {
         isGrounded = false;
-
-        Debug.Log(rb.velocity.magnitude * 3.6f + " km/h");
-
-        accelInput = Mathf.Clamp((Input.GetAxis("Vertical") + (Input.GetAxis("R2")+1) - (Input.GetAxis("L2")+1)), -1, 1) * 35000;
-
+        bool isControlled = Player.instance.activeCar == this;
         bool handbrake = false;
-        if (Input.GetKey(KeyCode.Space) || Input.GetButton("Fire1"))
-            handbrake = true;
+
+        if (isControlled)
+        {
+            steering = Input.GetAxis("Horizontal") * -25 * steeringSensitivity;
+            accelInput = Mathf.Clamp((Input.GetAxis("Vertical") + (Input.GetAxis("R2") + 1) - (Input.GetAxis("L2") + 1)), -1, 1) * 35000;
+            if (Input.GetKey(KeyCode.Space) || Input.GetButton("Fire1"))
+                handbrake = true;
+        }
+        else
+        {
+            steering = 0;
+            accelInput = 0;
+            handbrake = false;
+        }
+
+        Debug.Log(Mathf.RoundToInt(rb.velocity.magnitude * 3.6f) + " km/h");
+
 
         float x = rb.velocity.magnitude / carTopSpeed;
 
         engineA.volume = engineVolume.Evaluate(x) * Mathf.Clamp(accelInput/35000, 0.3f, 1);
         engineA.pitch = enginePitch.Evaluate(x) * Mathf.Clamp(accelInput/35000, 0.8f, 1);
 
-        if(Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Fire1"))
-        {
-            handbreak.pitch = Random.Range(0.9f, 1.1f);
-            handbreak.Play();
-        }
-
         lastoffsets1 = Spring(s1, lastoffsets1, accelInput, frontStrength, FrontGrip, false, w1, tm1, p1, tire1);
         lastoffsets2 = Spring(s2, lastoffsets2, accelInput, frontStrength, FrontGrip, false, w2, tm2, p2, tire2);
         lastoffsets3 = Spring(s3, lastoffsets3, accelInput, backStrength, BackGrip, handbrake, w3, tm3, p3, tire3);
         lastoffsets4 = Spring(s4, lastoffsets4, accelInput, backStrength, BackGrip, handbrake, w4, tm4, p4, tire4);
-
-        float steering = Input.GetAxis("Horizontal") * -25 * steeringSensitivity;
 
         p1.transform.LookAt(p1.transform.position + rb.velocity);
         p2.transform.LookAt(p2.transform.position + rb.velocity);

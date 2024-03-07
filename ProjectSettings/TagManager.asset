@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Car
+  - Portal
   layers:
   - Default
   - TransparentFX
@@ -15,7 +17,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - Space
   - Car
   - Player
   - 
@@ -23,8 +25,8 @@ TagManager:
   - 
   - Particles
   - 
-  - 
-  - 
+  - Portal
+  - Camera
   - 
   - 
   - 

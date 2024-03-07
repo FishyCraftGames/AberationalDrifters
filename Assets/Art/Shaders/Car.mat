@@ -12,14 +12,12 @@ Material:
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _MAIN_LIGHT_SHADOWS
-  - _MAIN_LIGHT_SHADOWS_CASCADE
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap:
     RenderType: Opaque
   disabledShaderPasses: []
@@ -76,8 +74,8 @@ Material:
     - _Cull: 2
     - _DstBlend: 0
     - _FresnelStrength: 0.01
-    - _MAIN_LIGHT_SHADOWS: 1
-    - _MAIN_LIGHT_SHADOWS_CASCADE: 1
+    - _MAIN_LIGHT_SHADOWS: 0
+    - _MAIN_LIGHT_SHADOWS_CASCADE: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _SHADOWS_SOFT: 0
@@ -90,7 +88,8 @@ Material:
     m_Colors:
     - _EmissionColor: {r: 10.673309, g: 6.7010098, b: 3.6752431, a: 0}
     - _Min_Max: {r: -0.95, g: 1.386, b: 0, a: 0}
-    - _Scale: {r: 1.3, g: 2, b: 5, a: 0}
+    - _Offset: {r: -1.096, g: -1.096, b: -0.536, a: 0}
+    - _Scale: {r: 2.191, g: 5.005, b: 1.307, a: 0}
     - _test: {r: 0.5, g: 0.5, b: 0.5, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &67831994808173782

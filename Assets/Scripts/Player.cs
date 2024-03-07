@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.iOS;
 
@@ -68,16 +69,16 @@ public class Player : MonoBehaviour
             Vector3 rot = transform.eulerAngles;
             float percentage;
 
-            rot.x += 10 * Input.GetAxis("Vertical") * sensitivity;
-            rot.x = Mathf.Clamp(rot.x, 0, 45);
+            rot.x += 20 * Input.GetAxis("Vertical") * sensitivity;
+            rot.x = Mathf.Clamp(rot.x, 0, 90);
 
-            rot.y += 10 * Input.GetAxis("Horizontal") * sensitivity;
+            rot.y += 20 * Input.GetAxis("Horizontal") * sensitivity;
 
             rot.z = -5 * Input.GetAxis("Horizontal");
-            rot.z = Mathf.Clamp(rot.z, -15, 15);
+            rot.z = Mathf.Clamp(rot.z, -30, 30);
             transform.rotation = Quaternion.Euler(rot);
 
-            percentage = rot.x / 45;
+            percentage = rot.x / 90;
 
             float modDrag = (percentage * -2) + 8;
             float modSpeed = percentage * 5f + 5f;
@@ -87,6 +88,23 @@ public class Player : MonoBehaviour
             localV.z = modSpeed;
             rb.velocity = transform.TransformDirection(localV);
             rb.AddForce(Vector3.up);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (activeCar == null && kaboom < -100)
+        {
+            if (other.gameObject.tag == "Car")
+            {
+                activeCar = other.transform.GetComponent<car>();
+                transform.rotation = other.transform.rotation;
+                transform.position = other.transform.position;
+                FixedJoint fj = transform.AddComponent<FixedJoint>();
+                fj.connectedBody = other.transform.GetComponent<Rigidbody>();
+                fj.breakForce = 700;
+                fj.breakTorque = 300;
+            }
         }
     }
 
@@ -105,5 +123,8 @@ public class Player : MonoBehaviour
         force.y = 40f;
         rb.AddForce(force, ForceMode.Impulse);
         inCar = false;
+
+        activeCar = null;
+        kaboom = 0.5f;
     }
 }
