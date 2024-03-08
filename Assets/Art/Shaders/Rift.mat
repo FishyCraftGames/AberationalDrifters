@@ -51,12 +51,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Effect: 324.27
-    - _Position: 2.7
+    - _Effect: 538.8
+    - _Position: 1
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Refreaction: 0.5
-    - _Rotation: 80
+    - _Refreaction: 1
+    - _Rotation: 1
     m_Colors:
-    - _Center: {r: 22.62, g: 9.92, b: 28.11, a: 0}
+    - _Center: {r: 22.62, g: 9.92, b: 30, a: 0}
   m_BuildTextureStacks: []

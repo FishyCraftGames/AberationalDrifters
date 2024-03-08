@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.InputSystem.iOS;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -30,8 +32,10 @@ public class Player : MonoBehaviour
 
     public float explosionForce;
 
+
     private void Start()
     {
+        SceneManager.LoadScene("SampleScene", LoadSceneMode.Additive);
         rb = GetComponent<Rigidbody>();
         instance = this;
     }
@@ -69,7 +73,7 @@ public class Player : MonoBehaviour
             Vector3 rot = transform.eulerAngles;
             float percentage;
 
-            rot.x += 20 * Input.GetAxis("Vertical") * sensitivity;
+            rot.x += 10 * Input.GetAxis("Vertical") * sensitivity;
             rot.x = Mathf.Clamp(rot.x, 0, 90);
 
             rot.y += 20 * Input.GetAxis("Horizontal") * sensitivity;
@@ -102,8 +106,8 @@ public class Player : MonoBehaviour
                 transform.position = other.transform.position;
                 FixedJoint fj = transform.AddComponent<FixedJoint>();
                 fj.connectedBody = other.transform.GetComponent<Rigidbody>();
-                fj.breakForce = 700;
-                fj.breakTorque = 300;
+                fj.breakForce = 850;
+                fj.breakTorque = 400;
             }
         }
     }
@@ -127,4 +131,10 @@ public class Player : MonoBehaviour
         activeCar = null;
         kaboom = 0.5f;
     }
+
+    public void unloadScene()
+    {
+        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene());
+    }
+
 }

@@ -12,7 +12,13 @@ public class Portal : MonoBehaviour
     public Volume volume;
     public float distance;
 
+    public AudioSource audio;
+
     private DepthOfField depthOfField;
+
+    int hasEntered = 1;
+
+    public GameObject sun;
 
     private void Start()
     {
@@ -21,12 +27,16 @@ public class Portal : MonoBehaviour
 
     private void Update()
     {
-        float truedistance = Mathf.Abs(Vector3.Distance(transform.position, portal.position));
-        float factor = 1 - Mathf.Clamp(100 / distance * truedistance, 0, 100)/100;
-        volume.weight = factor;
-        if(factor < 1)
+        if (portal != null)
         {
-            depthOfField.focusDistance.value = distance;
+            float truedistance = Mathf.Abs(Vector3.Distance(transform.position, portal.position));
+            float factor = 1 - Mathf.Clamp(100 / distance * truedistance, 0, 100) / 100;
+            volume.weight = factor;
+            audio.volume = factor * hasEntered;
+            if (factor < 1)
+            {
+                depthOfField.focusDistance.value = distance;
+            }
         }
     }
 
@@ -35,6 +45,11 @@ public class Portal : MonoBehaviour
         if(other.gameObject.tag == "Portal")
         {
             obj.SetActive(true);
+            Player.instance.activeCar.GetComponent<Rigidbody>().useGravity = false;
+            Player.instance.activeCar.GetComponent<Rigidbody>().freezeRotation = true;
+            hasEntered = 0;
+            Player.instance.unloadScene();
+            sun.SetActive(true);
         }
     }
 }
