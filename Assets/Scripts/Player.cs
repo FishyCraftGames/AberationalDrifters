@@ -35,7 +35,7 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        SceneManager.LoadScene("SampleScene", LoadSceneMode.Additive);
+        SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Additive);
         rb = GetComponent<Rigidbody>();
         instance = this;
     }
@@ -101,6 +101,9 @@ public class Player : MonoBehaviour
         {
             if (other.gameObject.tag == "Car")
             {
+                SceneManager.MoveGameObjectToScene(other.gameObject, this.gameObject.scene);
+
+                inCar = true;
                 activeCar = other.transform.GetComponent<car>();
                 transform.rotation = other.transform.rotation;
                 transform.position = other.transform.position;
@@ -128,6 +131,8 @@ public class Player : MonoBehaviour
         rb.AddForce(force, ForceMode.Impulse);
         inCar = false;
 
+        SceneManager.MoveGameObjectToScene(activeCar.transform.gameObject, SceneManager.GetActiveScene());
+
         activeCar = null;
         kaboom = 0.5f;
     }
@@ -135,6 +140,11 @@ public class Player : MonoBehaviour
     public void unloadScene()
     {
         SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene());
+    }
+
+    public void loadNextScene()
+    {
+        SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Additive);
     }
 
 }

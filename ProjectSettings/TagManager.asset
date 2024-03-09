@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Car
   - Portal
+  - AntiPortal
   layers:
   - Default
   - TransparentFX

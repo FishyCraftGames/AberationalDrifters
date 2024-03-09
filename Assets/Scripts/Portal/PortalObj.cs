@@ -10,5 +10,6 @@ public class PortalObj : MonoBehaviour
         this.transform.position = portalSpawner.transform.position;
         this.transform.rotation = portalSpawner.transform.rotation;
         Camera.main.GetComponent<Portal>().portal = this.transform;
+        Shader.SetGlobalVector("_Center", portalSpawner.transform.position);
     }
 }

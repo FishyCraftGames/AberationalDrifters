@@ -1779,7 +1779,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "e00": 0.05000000074505806,
+        "e00": 0.029999999329447748,
         "e01": 2.0,
         "e02": 2.0,
         "e03": 2.0,
@@ -2673,7 +2673,7 @@
     "m_RefNameGeneratedByDisplayName": "Center",
     "m_DefaultReferenceName": "_Center",
     "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": false,
+    "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,

@@ -29,7 +29,7 @@ public class car : MonoBehaviour
     [SerializeField] AnimationCurve engineVolume;
     [SerializeField] AnimationCurve enginePitch;
     [SerializeField] AudioSource engineA;
-    [SerializeField] float carTopSpeed;
+    public float carTopSpeed;
     [SerializeField] float rollGrip;
     [SerializeField] float breakForce;
     public float accelInput;
@@ -74,6 +74,11 @@ public class car : MonoBehaviour
 
     private float steering;
 
+    public bool noHandbreak = false;
+
+    public float accMultiplier = 1;
+    public float gripMultiplyer = 1;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -83,7 +88,7 @@ public class car : MonoBehaviour
     {
         if (Player.instance.activeCar == this)
         {
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Fire1"))
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Fire1") && !noHandbreak)
             {
                 handbreak.pitch = Random.Range(0.9f, 1.1f);
                 handbreak.Play();
@@ -100,8 +105,11 @@ public class car : MonoBehaviour
         if (isControlled)
         {
             steering = Input.GetAxis("Horizontal") * -25 * steeringSensitivity;
-            accelInput = Mathf.Clamp((Input.GetAxis("Vertical") + (Input.GetAxis("R2") + 1) - (Input.GetAxis("L2") + 1)), -1, 1) * 35000;
-            if (Input.GetKey(KeyCode.Space) || Input.GetButton("Fire1"))
+            float min = -1;
+            if(noHandbreak)
+                min = 0;
+            accelInput = Mathf.Clamp((Input.GetAxis("Vertical") + (Input.GetAxis("R2") + 1) - (Input.GetAxis("L2") + 1)), min, 1) * 35000;
+            if (Input.GetKey(KeyCode.Space) || Input.GetButton("Fire1") && !noHandbreak)
                 handbrake = true;
         }
         else
@@ -184,7 +192,7 @@ public class car : MonoBehaviour
             float velChange = 0;
             //i know that what im about to do is wrong but it feels better
             //dond tjudge me for doing fake math
-            velChange = -steeringVel * (tireGrip.Evaluate(tireGripPercent) + tireGrip.Evaluate(rb.velocity.magnitude / carTopSpeed)) / 2;
+            velChange = -steeringVel * Mathf.Clamp01((tireGrip.Evaluate(tireGripPercent) + tireGrip.Evaluate(rb.velocity.magnitude / carTopSpeed)) / 2f * gripMultiplyer);
             float velAcceleration = velChange / Time.fixedDeltaTime;
 
             if (isGrounded)
@@ -206,7 +214,7 @@ public class car : MonoBehaviour
                         Vector3 accelDir = a.forward;
 
                         float carSpeed = Vector3.Dot(transform.forward, rb.velocity);
-                        float normalizeSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
+                        float normalizeSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed * accMultiplier);
                         float avaliableTorque = powerCurve.Evaluate(normalizeSpeed) * c * 2;
 
                         rb.AddForceAtPosition(accelDir * avaliableTorque, a.position);
@@ -216,7 +224,7 @@ public class car : MonoBehaviour
                         Vector3 accelDir = -a.forward;
 
                         float carSpeed = Vector3.Dot(transform.forward, rb.velocity);
-                        float normalizeSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
+                        float normalizeSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed * accMultiplier);
                         float avaliableTorque = powerCurve.Evaluate(normalizeSpeed) * Mathf.Abs(c / 2);
 
                         rb.AddForceAtPosition(accelDir * avaliableTorque, a.position);
