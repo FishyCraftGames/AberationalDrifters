@@ -124,13 +124,23 @@ public class Portal : MonoBehaviour
         Player.instance.activeCar.GetComponent<Rigidbody>().MovePosition(newPos);
         this.transform.root.position = cam.target.position;
 
-        Player.instance.loadNextScene();
-
         AntiPortal.SetTrigger("In");
         sun.SetActive(false);
 
-        GameObject portal = GameObject.Find("Portal");
-        portalScene = portal.scene;
-        Destroy(portal);
+        try
+        {
+            GameObject portal = GameObject.Find("Portal");
+            portalScene = portal.scene;
+            Destroy(portal);
+        }
+        catch { };
+
+        Player.instance.loadNextScene();
+
+        try
+        {
+            Player.instance.activeCar.transform.GetComponent<ExplodeOnImpactCarComponent>().cooldown = 5f;
+        }
+        catch { };
     }
 }

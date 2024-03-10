@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.iOS;
 using UnityEngine.SceneManagement;
 
@@ -32,6 +33,10 @@ public class Player : MonoBehaviour
 
     public float explosionForce;
 
+    public GameObject gameOver;
+    public GameObject menuButton;
+
+    float invincibility = 1f;
 
     private void Start()
     {
@@ -52,6 +57,27 @@ public class Player : MonoBehaviour
             kaboom = -101;
             rb.AddForce(Vector3.up * explosionForce, ForceMode.Impulse);
             Debug.LogError("SecondaryWxplosion");
+        }
+
+        invincibility -= Time.deltaTime;
+
+        if(invincibility > 0)
+        {
+            SphereCollider[] sc = transform.GetComponents<SphereCollider>();
+            foreach(SphereCollider s in sc)
+            {
+                if (!s.isTrigger)
+                    s.enabled = false;
+            }
+        }
+        else
+        {
+            SphereCollider[] sc = transform.GetComponents<SphereCollider>();
+            foreach (SphereCollider s in sc)
+            {
+                if (!s.isTrigger)
+                    s.enabled = true;
+            }
         }
     }
 
@@ -115,26 +141,45 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void OnCollisionStay(Collision collision)
+    {
+        if(collision.gameObject.tag != "Car" && invincibility < 0)
+        {
+            gameOver.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(menuButton);
+        }
+
+    }
+
     private void OnJointBreak(float breakForce)
     {
-        Instantiate(Explosion, transform.position, transform.rotation);
-        explosionPoint = transform.position - Vector3.down * 5f;
+        Explode();
+    }
 
-        transform.eulerAngles = new Vector3(0f, transform.eulerAngles.y, 0f);
+    public void Explode()
+    {
+        if (inCar)
+        {
+            Instantiate(Explosion, transform.position, transform.rotation);
+            explosionPoint = transform.position - Vector3.down * 5f;
 
-        rb.angularVelocity = Vector3.zero;
-        rb.velocity = Vector3.zero;
-        Vector3 force = activeCar.GetComponent<Rigidbody>().velocity * 3;
-        force.x = 0;
-        force.z = 0;
-        force.y = 40f;
-        rb.AddForce(force, ForceMode.Impulse);
-        inCar = false;
+            transform.eulerAngles = new Vector3(0f, transform.eulerAngles.y, 0f);
 
-        SceneManager.MoveGameObjectToScene(activeCar.transform.gameObject, SceneManager.GetActiveScene());
+            rb.angularVelocity = Vector3.zero;
+            rb.velocity = Vector3.zero;
+            Vector3 force = activeCar.GetComponent<Rigidbody>().velocity * 3;
+            force.x = 0;
+            force.z = 0;
+            force.y = 40f;
+            rb.AddForce(force, ForceMode.Impulse);
+            inCar = false;
 
-        activeCar = null;
-        kaboom = 0.5f;
+            SceneManager.MoveGameObjectToScene(activeCar.transform.gameObject, SceneManager.GetActiveScene());
+
+            activeCar = null;
+            kaboom = 0.5f;
+            invincibility = 1f;
+        }
     }
 
     public void unloadScene()

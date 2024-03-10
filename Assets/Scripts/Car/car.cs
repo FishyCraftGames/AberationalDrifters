@@ -13,14 +13,14 @@ public class car : MonoBehaviour
 
     [Header("Springs")]
     [SerializeField] float length;
-    [SerializeField] float frontStrength;
-    [SerializeField] float backStrength;
-    [SerializeField] float dampening;
+    public float frontStrength;
+    public float backStrength;
+    public float dampening;
 
     [Header("Steering")]
     [SerializeField] AnimationCurve FrontGrip; 
     [SerializeField] AnimationCurve BackGrip; 
-    [SerializeField] float TireMass;
+    public float TireMass;
     [SerializeField] float turnSpeed;
     [SerializeField] float steeringSensitivity;
 
@@ -88,7 +88,7 @@ public class car : MonoBehaviour
     {
         if (Player.instance.activeCar == this)
         {
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Fire1") && !noHandbreak)
+            if ((Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Fire1")) && !noHandbreak)
             {
                 handbreak.pitch = Random.Range(0.9f, 1.1f);
                 handbreak.Play();
@@ -109,7 +109,7 @@ public class car : MonoBehaviour
             if(noHandbreak)
                 min = 0;
             accelInput = Mathf.Clamp((Input.GetAxis("Vertical") + (Input.GetAxis("R2") + 1) - (Input.GetAxis("L2") + 1)), min, 1) * 35000;
-            if (Input.GetKey(KeyCode.Space) || Input.GetButton("Fire1") && !noHandbreak)
+            if ((Input.GetKey(KeyCode.Space) || Input.GetButton("Fire1")) && !noHandbreak)
                 handbrake = true;
         }
         else
