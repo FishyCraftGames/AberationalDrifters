@@ -1,7 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
@@ -21,6 +19,7 @@ public class MeshGenerator : MonoBehaviour
 
     public Transform start;
     public Transform end;
+    public int h;
 
     void Start()
     {
@@ -54,8 +53,8 @@ public class MeshGenerator : MonoBehaviour
             for(int x = 0; x <= xSize; x++)
             {
                 //swapOut With Noise
-                //float y = hMap.GetPixel(z, x).grayscale * 20;
-                float y = 0;
+                float y = heightMap.GetPixel(z, x).grayscale * 20;
+                //float y = 0;
 
                 vertecies[i] = new Vector3(x, y, z);
                 i++;
@@ -110,17 +109,26 @@ public class MeshGenerator : MonoBehaviour
         mesh.RecalculateNormals();
         mesh.colors = vertexColor;
 
+        GetComponent<MeshCollider>().sharedMesh = mesh;
+
         mesh.RecalculateBounds();
     }
 
     Texture2D GenerateRoads(Texture2D a)
     {
-        Texture2D flowMap = new Texture2D(a.width, a.height);
-        List<Vector2> frontiers = new List<Vector2>();
-        //frontiers.Add(new Vector2(Mathf.RoundToInt(start.transform.position.x), Mathf.RoundToInt(start.transform.position.z)));
-        frontiers.Add(new Vector2(10, 10));
+        Vector2 startPos = new Vector2(40, 101);
+        Vector2 target = new Vector2(175, 216);
+
+        Texture2D flowMap = new Texture2D(a.width, a.height, TextureFormat.RGB24, false);
+
+        //List<Vector2> frontiers = new List<Vector2>();
+        List<Vector3> frontiers = new List<Vector3>();
+        frontiers.Add(new Vector3(startPos.x, startPos.y, 0));
         flowMap.filterMode = FilterMode.Point;
         flowMap.wrapMode = TextureWrapMode.Clamp;
+
+        Dictionary<Vector2, int> costMap = new Dictionary<Vector2, int>();
+        costMap.Add(startPos, 0);
 
         var fillColorArray = flowMap.GetPixels();
         Color fillColor = Color.black;
@@ -138,95 +146,62 @@ public class MeshGenerator : MonoBehaviour
         colors.Add(Color.blue);
         colors.Add(Color.yellow);
 
+        int g = 0;
         while (frontiers.Count > 0)
         {
             //check neighbours
-            Vector2 current = frontiers[0];
+            int lowestCostIndex = GetLowestCost(frontiers);
+            Vector3 fr = frontiers[lowestCostIndex];
+            Vector2 current = new Vector2(fr.x, fr.y);
             float from = a.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y)).grayscale;
-            current += new Vector2(0, 1);
-            if (current.x <= flowMap.width || current.y <= flowMap.height)
+
+            //remove current frontier
+            frontiers.RemoveAt(lowestCostIndex);
+
+            List<Vector2> neighbors = new List<Vector2>();
+            neighbors.Add(current + new Vector2(0, 1));
+            neighbors.Add(current + new Vector2(1, 0));
+            neighbors.Add(current + new Vector2(0, -1));
+            neighbors.Add(current + new Vector2(-1, 0));
+            if ((current.x + current.y) % 2 == 0) neighbors.Reverse();
+
+            foreach (var neighbor in neighbors)
             {
-                float up = a.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y)).grayscale;
-                float diff = Mathf.Abs(from - up) * 20 / 1;
-                if (diff <= 1)
+                if(neighbor.x >= 0 && neighbor.x < flowMap.width && neighbor.y >= 0 && neighbor.y < flowMap.height)
                 {
-                    if (!colors.Contains(flowMap.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y))))
+                    float to = a.GetPixel(Mathf.RoundToInt(neighbor.x), Mathf.RoundToInt(neighbor.y)).grayscale;
+                    float diff = Mathf.Abs(from - to) * 40 / 1f;
+
+                    if (diff <= 1)
                     {
-                        frontiers.Add(current);
+                        int newCost = costMap[current] + Mathf.RoundToInt(diff*100);
+                        if (!costMap.ContainsKey(neighbor))
+                        {
+                            costMap.Add(neighbor, newCost);
+                        }
+
+                        if (!frontiers.Contains(neighbor) && flowMap.GetPixel(Mathf.RoundToInt(neighbor.x), Mathf.RoundToInt(neighbor.y)) == Color.black)
+                        {
+                            Debug.Log(newCost);
+                            frontiers.Add(new Vector3(neighbor.x, neighbor.y, newCost));
+                            Color color = GetDirectionColor(neighbor - current);
+                            flowMap.SetPixel(Mathf.RoundToInt(neighbor.x), Mathf.RoundToInt(neighbor.y), color);
+                        }
                     }
-                    flowMap.SetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y), Color.green);
-                }
-                else
-                {
-                    flowMap.SetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y), Color.magenta);
+                    else if (flowMap.GetPixel(Mathf.RoundToInt(neighbor.x), Mathf.RoundToInt(neighbor.y)) == Color.black)
+                    {
+                        flowMap.SetPixel(Mathf.RoundToInt(neighbor.x), Mathf.RoundToInt(neighbor.y), Color.white);
+                    }
                 }
             }
 
-            current += new Vector2(1, -1);
-            float right = a.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y)).grayscale;
-            if (current.x <= flowMap.width || current.y <= flowMap.height)
-            {
-                float diff = Mathf.Abs(from - right) / 1;
-                if (diff <= 1)
-                {
-                    if (!colors.Contains(flowMap.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y))))
-                    {
-                        frontiers.Add(current);
-                    }
-                    flowMap.SetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y), Color.red);
-                }
-                else
-                {
-                    flowMap.SetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y), Color.magenta);
-                }
-            }
-
-            current += new Vector2(-1, -1);
-            float down = a.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y)).grayscale;
-            if (current.x <= flowMap.width || current.y <= flowMap.height)
-            {
-                float diff = Mathf.Abs(from - down) / 1;
-                if (diff <= 1)
-                {
-                    if (!colors.Contains(flowMap.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y))))
-                    {
-                        frontiers.Add(current);
-                    }
-                    flowMap.SetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y), Color.blue);
-                }
-                else
-                {
-                    flowMap.SetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y), Color.magenta);
-                }
-            }
-
-            current += new Vector2(-1, 1);
-            float left = a.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y)).grayscale;
-            if (current.x <= flowMap.width || current.y <= flowMap.height)
-            {
-                float diff = Mathf.Abs(from - left) / 1;
-                if (diff <= 1)
-                {
-                    if (!colors.Contains(flowMap.GetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y))))
-                    {
-                        frontiers.Add(current);
-                    }
-                    flowMap.SetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y), Color.yellow);
-                }
-                else
-                {
-                    flowMap.SetPixel(Mathf.RoundToInt(current.x), Mathf.RoundToInt(current.y), Color.magenta);
-                }
-            }
-
-            //remove frontier
-            frontiers.Remove(frontiers[0]);
+            g++;
         }
 
         Texture2D path = new Texture2D(flowMap.width, flowMap.height);
-        Vector2 target = new Vector2(70, 5);
 
         fillColorArray = path.GetPixels();
+        fillColor = new Vector4(0, 0, 0, 0);
 
         for (var i = 0; i < fillColorArray.Length; ++i)
         {
@@ -236,38 +211,175 @@ public class MeshGenerator : MonoBehaviour
         path.SetPixels(fillColorArray);
 
         int b = 0;
-        while (target != new Vector2(10, 10) && b < 500)
+        while (target != startPos && b < 5000)
         {
             Color c = flowMap.GetPixel(Mathf.RoundToInt(target.x), Mathf.RoundToInt(target.y));
             if (!colors.Contains(c))
                 break;
 
-            path.SetPixel(Mathf.RoundToInt(target.x), Mathf.RoundToInt(target.y), Color.white);
+            //path.SetPixel(Mathf.RoundToInt(target.x), Mathf.RoundToInt(target.y), Color.white);
+            path = DrawCircle(target, 4, a ,path);
 
             if(c == Color.green)
             {
-                target -= new Vector2(0, -1);
+                target += new Vector2(0, -1);
             }
-            if (c == Color.red)
+            else if (c == Color.red)
             {
-                target -= new Vector2(-1, 0);
+                target += new Vector2(-1, 0);
             }
-            if (c == Color.blue)
+            else if (c == Color.blue)
             {
-                target -= new Vector2(0, 1);
+                target += new Vector2(0, 1);
             }
-            if (c == Color.yellow)
+            else if (c == Color.yellow)
             {
-                target -= new Vector2(1, 0);
+                target += new Vector2(1, 0);
             }
 
             b++;
+        }
+
+        path = BlurTexture(path, 3);
+
+        SaveTexture(flowMap);
+        SaveTexture(path);
+
+        Texture2D result = new Texture2D(path.width, path.height, TextureFormat.RGB24, false);
+
+        int x = path.width;
+        int y = path.height;
+        while (x > 0)
+        {
+            y = path.height;
+            while(y > 0)
+            {
+                float alpha = path.GetPixel(x, y).a;
+
+                Color col = path.GetPixel(x, y);
+                col *= alpha;
+                alpha = 1f - alpha;
+                col = col + a.GetPixel(x, y)*alpha;
+                result.SetPixel(x, y, col);
+
+                y--;
+            }
+            x--;
         }
 
         //for debugging to visualize the path
         //return flowMap; 
         
         //still just for debugging to see the path
-        return path;
+        return result;
+    }
+
+    Texture2D DrawCircle(Vector2 coordinates, int radius, Texture2D texInput, Texture2D texOutput)
+    {
+        int x = Mathf.RoundToInt(coordinates.x);
+        int y = Mathf.RoundToInt(coordinates.y);
+        Color color = texInput.GetPixel(x, y);
+        float rSquared = radius * radius;
+
+        for (int u = x - radius; u < x + radius + 1; u++)
+            for (int v = y - radius; v < y + radius + 1; v++)
+                if ((x - u) * (x - u) + (y - v) * (y - v) < rSquared)
+                    texOutput.SetPixel(u, v, color);
+
+        return texOutput;
+    }
+
+    Texture2D BlurTexture(Texture2D image, int blurSize)
+    {
+        Texture2D blurred = new Texture2D(image.width, image.height);
+     
+        // look at every pixel in the blur rectangle
+        for (int xx = 0; xx < image.width; xx++)
+        {
+            for (int yy = 0; yy < image.height; yy++)
+            {
+                float avgR = 0, avgG = 0, avgB = 0, avgA = 0;
+                int blurPixelCount = 0;
+     
+                // average the color of the red, green and blue for each pixel in the
+                // blur size while making sure you don't go outside the image bounds
+                for (int x = xx; (x < xx + blurSize && x < image.width); x++)
+                {
+                    for (int y = yy; (y < yy + blurSize && y < image.height); y++)
+                    {
+                        Color pixel = image.GetPixel(x, y);
+     
+                        avgR += pixel.r;
+                        avgG += pixel.g;
+                        avgB += pixel.b;
+                        avgA += pixel.a;
+     
+                        blurPixelCount++;
+                    }
+                }
+     
+                avgR = avgR / blurPixelCount;
+                avgG = avgG / blurPixelCount;
+                avgB = avgB / blurPixelCount;
+                avgA = avgA / blurPixelCount;
+     
+                // now that we know the average for the blur size, set each pixel to that color
+                for (int x = xx; x < xx + blurSize && x < image.width; x++)
+                    for (int y = yy; y < yy + blurSize && y < image.height; y++)
+                        blurred.SetPixel(x, y, new Color(avgR, avgG, avgB, avgA));
+            }
+        }
+        blurred.Apply();
+        return blurred;
+    }
+
+    Color GetDirectionColor(Vector2 dir)
+    {
+        if(dir == new Vector2(0, 1))
+        {
+            return Color.green;
+        }
+        else if(dir == new Vector2(1, 0))
+        {
+            return Color.red;
+        }
+        else if (dir == new Vector2(0, -1))
+        {
+            return Color.blue;
+        }
+        else
+        {
+            return Color.yellow;
+        }
+    }
+
+    int GetLowestCost(List<Vector3> l)
+    {
+        float HighestCost = 0;
+        int index = 0;
+        for(int i = 0; i < l.Count; i++)
+        {
+            if (l[i].z <= HighestCost)
+            {
+                index = i;
+                HighestCost = l[i].z;
+            }
+        }
+        return index;
+    }
+
+    private void SaveTexture(Texture2D texture)
+    {
+        byte[] bytes = texture.EncodeToPNG();
+        var dirPath = Application.dataPath + "/RenderOutput";
+        if (!System.IO.Directory.Exists(dirPath))
+        {
+            System.IO.Directory.CreateDirectory(dirPath);
+        }
+        System.IO.File.WriteAllBytes(dirPath + "/R_" + Random.Range(0, 100000) + ".png", bytes);
+        Debug.Log(bytes.Length / 1024 + "Kb was saved as: " + dirPath);
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
     }
 }
