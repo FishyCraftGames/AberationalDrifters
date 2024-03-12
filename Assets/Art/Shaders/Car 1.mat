@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Car
+  m_Name: Car 1
   m_Shader: {fileID: -6465566751694194690, guid: 9efa09326a211464eae0585ee8d32a2c,
     type: 3}
   m_Parent: {fileID: 0}
@@ -26,7 +26,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseColor:
-        m_Texture: {fileID: 2800000, guid: 3b8234cd55ca42745a9c15003ff8560d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0aed7e9434ab28e4ba81be657cc70675, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:

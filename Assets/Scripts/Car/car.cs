@@ -79,9 +79,14 @@ public class car : MonoBehaviour
     public float accMultiplier = 1;
     public float gripMultiplyer = 1;
 
+    bool hasBeenUsed = false;
+
+    public int personality = 0;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        personality = Random.Range(0, 1);
     }
 
     private void Update()
@@ -104,6 +109,8 @@ public class car : MonoBehaviour
 
         if (isControlled)
         {
+            hasBeenUsed = true;
+
             steering = Input.GetAxis("Horizontal") * -25 * steeringSensitivity;
             float min = -1;
             if(noHandbreak)
@@ -114,9 +121,22 @@ public class car : MonoBehaviour
         }
         else
         {
-            steering = 0;
-            accelInput = 0;
-            handbrake = false;
+            if (!hasBeenUsed)
+            {
+                Transform cw = GetClosestWaypoint();
+                Vector3 dirToTarget = cw.position - transform.position;
+                dirToTarget.y = 0;
+                float dot = Vector3.Dot(transform.right, dirToTarget);
+                steering = dot * -25f;
+                accelInput = 35000;
+                handbrake = false;
+            }
+            else
+            {
+                steering = 0;
+                accelInput = 0;
+                handbrake = false;
+            }
         }
 
         Debug.Log(Mathf.RoundToInt(rb.velocity.magnitude * 3.6f) + " km/h");
@@ -142,6 +162,43 @@ public class car : MonoBehaviour
 
         w1.localRotation = Quaternion.Euler(s1.localEulerAngles.x, -steering, s1.localEulerAngles.z);
         w2.localRotation = Quaternion.Euler(s2.localEulerAngles.x, -steering, s2.localEulerAngles.z);
+    }
+
+    Transform GetClosestWaypoint()
+    {
+
+        float closestDist = 999;
+        Transform closest = null;
+
+        for(int i = 0; i < CarManager.instance.waypoints.Count; i++)
+        {
+            float distFromPlayer = Vector3.Distance(Player.instance.transform.position, CarManager.instance.waypoints[i].position);
+            float distToPlayer = Vector3.Distance(Player.instance.transform.position, transform.position);
+            float distFromSelf = Vector3.Distance(transform.position, CarManager.instance.waypoints[i].position);
+
+            if (distToPlayer < distFromPlayer && distToPlayer < distFromSelf)
+            {
+                if(distFromSelf < closestDist)
+                {
+                    closestDist = distFromSelf;
+                    closest = CarManager.instance.waypoints[i];
+                }
+            }
+        }
+
+        if(closest == null)
+        {
+            if(personality == 0)
+            {
+                closest = Player.instance.transform;
+            }
+            else
+            {
+                closest = Player.instance.transform;
+            }
+        }
+
+        return closest;
     }
 
     float Spring(Transform a, float b, float c, float strength, AnimationCurve tireGrip, bool handbreak, Transform wheel, TrailRenderer r, ParticleSystem p, AudioSource audio)
