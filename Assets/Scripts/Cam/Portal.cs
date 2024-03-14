@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -41,13 +40,18 @@ public class Portal : MonoBehaviour
         if (portal != null && !inSpace)
         {
             float truedistance = Mathf.Abs(Vector3.Distance(transform.position, portal.position));
-            float factor = 1 - Mathf.Clamp(100 / distance * truedistance, 0, 100) / 100;
-            volume.weight = factor;
-            audio.volume = factor;
-            if (factor < 1)
+            float factor = 0;
+            try
             {
-                depthOfField.focusDistance.value = distance;
+                factor = 1 - Mathf.Clamp(100 / (distance + 0.001f) * truedistance, 0, 100) / 100;
+                volume.weight = Mathf.Clamp01(factor);
+                audio.volume = 0;
+                if (factor < 1)
+                {
+                    depthOfField.focusDistance.value = distance;
+                }
             }
+            catch { }
         }
         else
         {
@@ -79,7 +83,7 @@ public class Portal : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.tag == "Portal")
+        if(other.gameObject.tag == "Portal" && inSpace == false)
         {
             obj.SetActive(true);
             Rigidbody carRB = Player.instance.activeCar.GetComponent<Rigidbody>();

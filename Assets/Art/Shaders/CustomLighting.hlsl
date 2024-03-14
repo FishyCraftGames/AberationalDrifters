@@ -62,6 +62,7 @@ float3 CalculateCustomLighting(CustomLightingData d){
 
 	Light light = GetMainLight();
 	light.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+	light.distanceAttenuation = MainLightRealtimeShadow(shadowCoord);
 
 	float3 color = 0;
 	color += CustomLightHandling(d, light);

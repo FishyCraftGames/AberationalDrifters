@@ -1,10 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.iOS;
 using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
@@ -47,6 +45,18 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Explode();
+        }
+
+        if(transform.position.y < -7f)
+        {
+            gameOver.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(menuButton);
+        }
+
         if (!inCar)
         {
             kaboom -= Time.deltaTime;
@@ -135,8 +145,8 @@ public class Player : MonoBehaviour
                 transform.position = other.transform.position;
                 FixedJoint fj = transform.AddComponent<FixedJoint>();
                 fj.connectedBody = other.transform.GetComponent<Rigidbody>();
-                fj.breakForce = 850;
-                fj.breakTorque = 400;
+                fj.breakForce = 600;
+                fj.breakTorque = 300;
             }
         }
     }

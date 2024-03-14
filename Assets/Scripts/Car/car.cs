@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Unity.VisualScripting;
+using System;
 
 // thank you to ToyfullGames for the amazing tutorial used for the base code
 // https://www.toyfulgames.com/blog/deep-dive-car-physics
@@ -83,10 +84,12 @@ public class car : MonoBehaviour
 
     public int personality = 0;
 
+    public LayerMask ai;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        personality = Random.Range(0, 1);
+        personality = UnityEngine.Random.Range(0, 1);
     }
 
     private void Update()
@@ -95,7 +98,7 @@ public class car : MonoBehaviour
         {
             if ((Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Fire1")) && !noHandbreak)
             {
-                handbreak.pitch = Random.Range(0.9f, 1.1f);
+                handbreak.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
                 handbreak.Play();
             }
         }
@@ -123,13 +126,33 @@ public class car : MonoBehaviour
         {
             if (!hasBeenUsed)
             {
-                Transform cw = GetClosestWaypoint();
-                Vector3 dirToTarget = cw.position - transform.position;
-                dirToTarget.y = 0;
-                float dot = Vector3.Dot(transform.right, dirToTarget);
-                steering = dot * -25f;
-                accelInput = 35000;
-                handbrake = false;
+                try
+                {
+                    Transform cw = GetClosestWaypoint();
+                    Vector3 dirToTarget = cw.position - transform.position;
+                    dirToTarget.y = 0;
+                    float dot = Vector3.Dot(transform.right, dirToTarget.normalized);
+                    float dotForward = Vector3.Dot(transform.forward, dirToTarget.normalized);
+                    steering = Mathf.Clamp(dot * -20 * (1 - (rb.velocity.magnitude / carTopSpeed) + 0.01f), -25, 25);
+
+                    accelInput = 35000 * (dotForward + 0.1f);
+                    handbrake = false;
+
+                    if (Physics.Raycast(transform.position, transform.forward + transform.right * 0.2f, out RaycastHit hitR, 30f, ai))
+                    {
+                        steering += 1 * -10 * (1 - 30 / hitR.distance);
+                        steering = Mathf.Clamp(steering, -25, 25);
+                    }
+                    if (Physics.Raycast(transform.position, transform.forward - transform.right * 0.2f, out RaycastHit hitL, 30f, ai))
+                    {
+                        steering += -1 * -10 * (1 - 30 / hitL.distance);
+                        steering = Mathf.Clamp(steering, -25, 25);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, this);
+                }
             }
             else
             {
@@ -144,8 +167,12 @@ public class car : MonoBehaviour
 
         float x = rb.velocity.magnitude / carTopSpeed;
 
-        engineA.volume = engineVolume.Evaluate(x) * Mathf.Clamp(accelInput/35000, 0.3f, 1);
-        engineA.pitch = enginePitch.Evaluate(x) * Mathf.Clamp(accelInput/35000, 0.8f, 1);
+        try
+        {
+            engineA.volume = Mathf.Clamp01(engineVolume.Evaluate(x) * Mathf.Clamp(accelInput / 35000, 0.3f, 1));
+            engineA.pitch = Mathf.Clamp(enginePitch.Evaluate(x) * Mathf.Clamp(accelInput / 35000, 0.8f, 1), 0, 1.5f);
+        }
+        catch { }
 
         lastoffsets1 = Spring(s1, lastoffsets1, accelInput, frontStrength, FrontGrip, false, w1, tm1, p1, tire1);
         lastoffsets2 = Spring(s2, lastoffsets2, accelInput, frontStrength, FrontGrip, false, w2, tm2, p2, tire2);
@@ -169,18 +196,18 @@ public class car : MonoBehaviour
 
         float closestDist = 999;
         Transform closest = null;
+        float dCarToPlayer = Vector3.Distance(Player.instance.transform.position, transform.position);
 
-        for(int i = 0; i < CarManager.instance.waypoints.Count; i++)
+        for (int i = 0; i < CarManager.instance.waypoints.Count; i++)
         {
-            float distFromPlayer = Vector3.Distance(Player.instance.transform.position, CarManager.instance.waypoints[i].position);
-            float distToPlayer = Vector3.Distance(Player.instance.transform.position, transform.position);
-            float distFromSelf = Vector3.Distance(transform.position, CarManager.instance.waypoints[i].position);
+            float dWPTOPlayer = Vector3.Distance(Player.instance.transform.position, CarManager.instance.waypoints[i].position);
+            float dWPTOSelf = Vector3.Distance(transform.position, CarManager.instance.waypoints[i].position);
 
-            if (distToPlayer < distFromPlayer && distToPlayer < distFromSelf)
+            if (dCarToPlayer > dWPTOPlayer && dCarToPlayer > dWPTOSelf)
             {
-                if(distFromSelf < closestDist)
+                if(dWPTOSelf < closestDist)
                 {
-                    closestDist = distFromSelf;
+                    closestDist = dWPTOSelf;
                     closest = CarManager.instance.waypoints[i];
                 }
             }
@@ -196,6 +223,11 @@ public class car : MonoBehaviour
             {
                 closest = Player.instance.transform;
             }
+        }
+
+        if(dCarToPlayer >= 500 && closest)
+        {
+            //Destroy(gameObject);
         }
 
         return closest;
@@ -225,6 +257,12 @@ public class car : MonoBehaviour
             wheel.position = tirePos;
 
             //Steering
+            float tmpGripMultiplyer = 1;
+            if (!hasBeenUsed)
+            {
+                tmpGripMultiplyer = 2;
+            }
+
             Vector3 steeringDir = a.right;
             Vector3 tireVel = rb.GetPointVelocity(a.position);
 
@@ -234,7 +272,7 @@ public class car : MonoBehaviour
 
             if (isGrounded && tireGripPercent > 0.4f) 
             {
-                audio.volume = Mathf.Clamp((tireGripPercent * (tireVel.magnitude / 15)), 0, 1);
+                audio.volume = Mathf.Clamp(tireGripPercent * (tireVel.magnitude / 15), 0, 1);
                 r.emitting = true;
                 p.Play();
             }
@@ -249,7 +287,7 @@ public class car : MonoBehaviour
             float velChange = 0;
             //i know that what im about to do is wrong but it feels better
             //dond tjudge me for doing fake math
-            velChange = -steeringVel * Mathf.Clamp01((tireGrip.Evaluate(tireGripPercent) + tireGrip.Evaluate(rb.velocity.magnitude / carTopSpeed)) / 2f * gripMultiplyer);
+            velChange = -steeringVel * Mathf.Clamp01((tireGrip.Evaluate(tireGripPercent) + tireGrip.Evaluate(rb.velocity.magnitude / carTopSpeed)) / 2f * gripMultiplyer * tmpGripMultiplyer);
             float velAcceleration = velChange / Time.fixedDeltaTime;
 
             if (isGrounded)
@@ -258,7 +296,7 @@ public class car : MonoBehaviour
             }
             else
             {
-                rb.AddForceAtPosition(steeringDir * TireMass * velAcceleration * 0.5f, a.position);
+                //rb.AddForceAtPosition(steeringDir * TireMass * velAcceleration * 0.5f, a.position);
             }
 
             //Driving

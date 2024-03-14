@@ -10,6 +10,8 @@ public class RoadGenerator : MonoBehaviour
     private float rotation;
     private Transform lastExit;
 
+    public RoadPieceItem endPiece;
+
     void Start()
     {
         lastExit = transform;
@@ -18,14 +20,21 @@ public class RoadGenerator : MonoBehaviour
         {
             while(true)
             {
-                RoadPieceItem newPiece = roadPieces[UnityEngine.Random.Range(0, roadPieces.Count)];
+                int index = UnityEngine.Random.Range(0, roadPieces.Count);
+                RoadPieceItem newPiece = roadPieces[index];
                 if(rotation + newPiece.angle < 180 && rotation + newPiece.angle > -180)
                 {
                     SpawnNewPiece(newPiece);
+                    if (newPiece.singleUse)
+                    {
+                        roadPieces.RemoveAt(index);
+                    }
                     break;
                 }
             }
         }
+
+        SpawnNewPiece(endPiece);
     }
 
     void SpawnNewPiece(RoadPieceItem piece)
@@ -38,6 +47,8 @@ public class RoadGenerator : MonoBehaviour
 
         var posDiff = lastExit.position - pData.inDir.position;
         newPiece.transform.position += posDiff;
+
+        rotation += pData.turn;
 
         foreach(Transform t in pData.waypoint) {
             CarManager.instance.waypoints.Add(t);
@@ -52,4 +63,5 @@ public class RoadPieceItem
 {
     public float angle;
     public List<GameObject> variants = new List<GameObject> ();
+    public bool singleUse = false;
 }
