@@ -11483,7 +11483,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6994045799923208835}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.15, y: 1.8451, z: -3.8}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -11552,7 +11552,7 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0.12867296
     - serializedVersion: 3
-      time: 0.3924574
+      time: 0.4308767
       value: 0.99729526
       inSlope: -0.00051120936
       outSlope: -0.00051120936
@@ -11561,8 +11561,8 @@ MonoBehaviour:
       inWeight: 0.0928492
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.59501183
-      value: 0.59619147
+      time: 0.6861205
+      value: 0.5867828
       inSlope: -2.2768357
       outSlope: -2.2768357
       tangentMode: 0
@@ -11587,15 +11587,15 @@ MonoBehaviour:
     - serializedVersion: 3
       time: -1.7462298e-10
       value: 0.9516129
-      inSlope: -0.41132092
-      outSlope: -0.41132092
+      inSlope: -0.3267378
+      outSlope: -0.3267378
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.3963432
-      value: 0.78858864
+      time: 0.44958138
+      value: 0.80471766
       inSlope: -0.36820248
       outSlope: -0.36820248
       tangentMode: 0
@@ -11603,8 +11603,8 @@ MonoBehaviour:
       inWeight: 0.0674763
       outWeight: 0.041627813
     - serializedVersion: 3
-      time: 0.64781713
-      value: 0.25124443
+      time: 0.7180696
+      value: 0.21764228
       inSlope: -0.4249364
       outSlope: -0.4249364
       tangentMode: 0
@@ -11614,8 +11614,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0.9983535
       value: 0.1545699
-      inSlope: -0.27579033
-      outSlope: -0.27579033
+      inSlope: -0.22503038
+      outSlope: -0.22503038
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -11625,7 +11625,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   TireMass: 120
   turnSpeed: 1
-  steeringSensitivity: 1
+  steeringSensitivity: 0.8
   powerCurve:
     serializedVersion: 2
     m_Curve:
@@ -11795,7 +11795,7 @@ MonoBehaviour:
   isGrounded: 0
   noHandbreak: 0
   accMultiplier: 1
-  gripMultiplyer: 1.2
+  gripMultiplyer: 2
   personality: 0
   ai:
     serializedVersion: 2

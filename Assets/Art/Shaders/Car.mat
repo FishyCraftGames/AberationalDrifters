@@ -86,7 +86,7 @@ Material:
     - _ZWrite: 1
     - _ZWriteControl: 0
     m_Colors:
-    - _EmissionColor: {r: 10.673309, g: 6.7010098, b: 3.6752431, a: 0}
+    - _EmissionColor: {r: 16.948376, g: 10.6406765, b: 5.835997, a: 0}
     - _Min_Max: {r: -0.95, g: 1.386, b: 0, a: 0}
     - _Offset: {r: -1.096, g: -1.096, b: -0.536, a: 0}
     - _Scale: {r: 2.191, g: 5.005, b: 1.307, a: 0}

@@ -114,7 +114,7 @@ public class car : MonoBehaviour
         {
             hasBeenUsed = true;
 
-            steering = Input.GetAxis("Horizontal") * -25 * steeringSensitivity;
+            steering = Input.GetAxis("Horizontal") * -25 * steeringSensitivity * (1 - rb.velocity.magnitude / (carTopSpeed*2));
             float min = -1;
             if(noHandbreak)
                 min = 0;

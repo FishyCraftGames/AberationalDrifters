@@ -15,7 +15,7 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
   m_Fog: 1
-  m_FogColor: {r: 0.23529413, g: 0.24313727, b: 0.30588236, a: 1}
+  m_FogColor: {r: 0.19215688, g: 0.19215688, b: 0.24313727, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.01
   m_LinearFogStart: 0
@@ -132,6 +132,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 796145008274786562, guid: a40efcea66918b44facb9a51d2a77149,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 840e5878d5061f1468ca8dd2675c77c9, type: 2}
     - target: {fileID: 5848421885150661885, guid: a40efcea66918b44facb9a51d2a77149,
         type: 3}
       propertyPath: m_Name
@@ -257,17 +262,17 @@ PrefabInstance:
     - target: {fileID: 5696876121346074931, guid: 0c5c18bd94cd11b4c94db5f2f791e330,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.64
+      value: 5.86
       objectReference: {fileID: 0}
     - target: {fileID: 5696876121346074931, guid: 0c5c18bd94cd11b4c94db5f2f791e330,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.91
+      value: 0.88
       objectReference: {fileID: 0}
     - target: {fileID: 5696876121346074931, guid: 0c5c18bd94cd11b4c94db5f2f791e330,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -55.62
+      value: -58.05
       objectReference: {fileID: 0}
     - target: {fileID: 5696876121346074931, guid: 0c5c18bd94cd11b4c94db5f2f791e330,
         type: 3}
@@ -349,7 +354,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -542,7 +547,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1491064726}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -6.9, z: 0}
+  m_LocalPosition: {x: 0, y: -6.19, z: 0}
   m_LocalScale: {x: 999, y: 999, z: 999}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -594,7 +599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd01818f3122b42928076206d2f8f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roadLength: 7
+  roadLength: 5
   roadPieces:
   - angle: 0
     variants:
@@ -646,6 +651,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 796145008274786562, guid: 05346af60525633438a7cd1d0a33e6a3,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 840e5878d5061f1468ca8dd2675c77c9, type: 2}
     - target: {fileID: 5848421885150661885, guid: 05346af60525633438a7cd1d0a33e6a3,
         type: 3}
       propertyPath: m_Name

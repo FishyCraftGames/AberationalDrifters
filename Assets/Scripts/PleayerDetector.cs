@@ -12,7 +12,7 @@ public class PleayerDetector : MonoBehaviour
     {
         if(other.gameObject.tag == "Player")
         {
-            Instantiate(car, transform.position, Quaternion.identity);
+            Instantiate(car, spawnPoint.position, spawnPoint.rotation);
             Destroy(gameObject);
         }
     }
