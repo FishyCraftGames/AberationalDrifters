@@ -9,6 +9,7 @@ public class RoadGenerator : MonoBehaviour
     public List<RoadPieceItem> roadPieces;
     private float rotation;
     private Transform lastExit;
+    public RoadPieceItem lastPiece;
 
     public RoadPieceItem endPiece;
 
@@ -24,10 +25,13 @@ public class RoadGenerator : MonoBehaviour
                 RoadPieceItem newPiece = roadPieces[index];
                 if(rotation + newPiece.angle < 180 && rotation + newPiece.angle > -180)
                 {
-                    SpawnNewPiece(newPiece);
-                    if (newPiece.singleUse)
+                    if (!lastPiece.nonmatchingNextPartID.Contains(newPiece.id))
                     {
-                        roadPieces.RemoveAt(index);
+                        SpawnNewPiece(newPiece);
+                        if (newPiece.singleUse)
+                        {
+                            roadPieces.RemoveAt(index);
+                        }
                     }
                     break;
                 }
@@ -50,18 +54,22 @@ public class RoadGenerator : MonoBehaviour
 
         rotation += pData.turn;
 
-        foreach(Transform t in pData.waypoint) {
-            CarManager.instance.waypoints.Add(t);
+        for(int i = 0; i < pData.waypoints.Count; i++)
+        {
+            CarManager.instance.waypoints.Add(pData.waypoints[i]);
         }
 
         lastExit = pData.outDir;
+        lastPiece = piece;
     }
 }
 
 [Serializable]
 public class RoadPieceItem
 {
+    public int id;
     public float angle;
     public List<GameObject> variants = new List<GameObject> ();
     public bool singleUse = false;
+    public List<int> nonmatchingNextPartID = new List<int>();
 }

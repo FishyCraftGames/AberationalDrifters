@@ -5,7 +5,7 @@ using UnityEngine;
 public class CarManager : MonoBehaviour
 {
     public static CarManager instance;
-    public List<Transform> waypoints = new List<Transform>();
+    public List<Waypoint> waypoints = new List<Waypoint>();
 
     void Awake()
     {

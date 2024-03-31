@@ -19,6 +19,8 @@ public class Player : MonoBehaviour
 
     public static Player instance;
 
+    public List<string> scenes = new List<string>();
+
     public bool inCar;
     bool isGrounded;
 
@@ -36,9 +38,11 @@ public class Player : MonoBehaviour
 
     float invincibility = 1f;
 
+    public float swooshVolume = 0;
+
     private void Start()
     {
-        SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Additive);
+        SceneManager.LoadSceneAsync(scenes[Random.Range(0, scenes.Count - 1)], LoadSceneMode.Additive);
         rb = GetComponent<Rigidbody>();
         instance = this;
     }
@@ -89,6 +93,9 @@ public class Player : MonoBehaviour
                     s.enabled = true;
             }
         }
+
+        swooshVolume = rb.velocity.magnitude / activeCar.carTopSpeed;
+        swooshVolume *= swooshVolume;
     }
 
     private void FixedUpdate()
@@ -137,7 +144,7 @@ public class Player : MonoBehaviour
         {
             if (other.gameObject.tag == "Car")
             {
-                SceneManager.MoveGameObjectToScene(other.gameObject, this.gameObject.scene);
+                SceneManager.MoveGameObjectToScene(other.transform.root.gameObject, this.gameObject.scene);
 
                 inCar = true;
                 activeCar = other.transform.GetComponent<car>();
@@ -199,7 +206,7 @@ public class Player : MonoBehaviour
 
     public void loadNextScene()
     {
-        SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Additive);
+        SceneManager.LoadSceneAsync(scenes[Random.Range(0, scenes.Count - 1)], LoadSceneMode.Additive);
     }
 
 }

@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using TMPro;
 using Unity.VisualScripting;
 using System;
+using UnityEngine.UIElements;
+using UnityEngine.Rendering;
 
 // thank you to ToyfullGames for the amazing tutorial used for the base code
 // https://www.toyfulgames.com/blog/deep-dive-car-physics
@@ -107,7 +109,9 @@ public class car : MonoBehaviour
     void FixedUpdate()
     {
         isGrounded = false;
-        bool isControlled = Player.instance.activeCar == this;
+        bool isControlled = false;
+        if (Player.instance != null)
+            isControlled = Player.instance.activeCar == this;
         bool handbrake = false;
 
         if (isControlled)
@@ -128,14 +132,14 @@ public class car : MonoBehaviour
             {
                 try
                 {
-                    Transform cw = GetClosestWaypoint();
-                    Vector3 dirToTarget = cw.position - transform.position;
+                    Vector4 cw = GetClosestWaypoint();
+                    Vector3 dirToTarget = new Vector3(cw.x, cw.y, cw.z) - transform.position;
                     dirToTarget.y = 0;
                     float dot = Vector3.Dot(transform.right, dirToTarget.normalized);
                     float dotForward = Vector3.Dot(transform.forward, dirToTarget.normalized);
                     steering = Mathf.Clamp(dot * -20 * (1 - (rb.velocity.magnitude / carTopSpeed) + 0.01f), -25, 25);
 
-                    accelInput = 35000 * (dotForward + 0.1f);
+                    accelInput = 35000 * (dotForward + 0.1f) * cw.w;
                     handbrake = false;
 
                     if (Physics.Raycast(transform.position, transform.forward + transform.right * 0.2f, out RaycastHit hitR, 30f, ai))
@@ -147,6 +151,10 @@ public class car : MonoBehaviour
                     {
                         steering += -1 * -10 * (1 - 30 / hitL.distance);
                         steering = Mathf.Clamp(steering, -25, 25);
+                    }
+                    if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hitF, 1f, ai))
+                    {
+                        accelInput *= -1;
                     }
                 }
                 catch (Exception e)
@@ -191,46 +199,64 @@ public class car : MonoBehaviour
         w2.localRotation = Quaternion.Euler(s2.localEulerAngles.x, -steering, s2.localEulerAngles.z);
     }
 
-    Transform GetClosestWaypoint()
+    Vector4 GetClosestWaypoint()
     {
 
         float closestDist = 999;
-        Transform closest = null;
-        float dCarToPlayer = Vector3.Distance(Player.instance.transform.position, transform.position);
-
-        for (int i = 0; i < CarManager.instance.waypoints.Count; i++)
+        float speedFac = 1;
+        Vector3 closest = Vector3.zero;
+        int cIndex1 = 0;
+        int cIndex2 = 0;
+        Vector3 playerPosition;
+        try
         {
-            float dWPTOPlayer = Vector3.Distance(Player.instance.transform.position, CarManager.instance.waypoints[i].position);
-            float dWPTOSelf = Vector3.Distance(transform.position, CarManager.instance.waypoints[i].position);
-
-            if (dCarToPlayer > dWPTOPlayer && dCarToPlayer > dWPTOSelf)
-            {
-                if(dWPTOSelf < closestDist)
-                {
-                    closestDist = dWPTOSelf;
-                    closest = CarManager.instance.waypoints[i];
-                }
-            }
+            playerPosition = Player.instance.transform.position;
+        }
+        catch
+        {
+            playerPosition = CarManager.instance.waypoints[CarManager.instance.waypoints.Count - 1].p.position;
         }
 
-        if(closest == null)
+        float dCarToPlayer = Vector3.Distance(playerPosition, transform.position);
+
+        if (dCarToPlayer > 10)
         {
-            if(personality == 0)
+            for (int i = CarManager.instance.waypoints.Count - 1; i > 0; i--)
             {
-                closest = Player.instance.transform;
+                float dWPTOSelf = Vector3.Distance(transform.position, CarManager.instance.waypoints[i].p.position);
+
+                if (dWPTOSelf < closestDist)
+                {
+                    closestDist = dWPTOSelf;
+                    cIndex2 = cIndex1;
+                    cIndex1 = i;
+                }
+            }
+
+            if(cIndex1 > cIndex2)
+            {
+                closest = CarManager.instance.waypoints[cIndex1].p.position;
+                speedFac = CarManager.instance.waypoints[cIndex1].speedFactor;
             }
             else
             {
-                closest = Player.instance.transform;
+                closest = CarManager.instance.waypoints[cIndex2].p.position;
+                speedFac = CarManager.instance.waypoints[cIndex2].speedFactor;
             }
-        }
 
-        if(dCarToPlayer >= 500 && closest)
+        }
+        else
         {
-            //Destroy(gameObject);
+            closest = Player.instance.transform.position;
         }
 
-        return closest;
+        Vector4 output = new Vector4(closest.x, closest.y, closest.z, speedFac);
+
+        Debug.DrawRay(CarManager.instance.waypoints[cIndex1].p.position, Vector3.up * 1000, Color.red);
+        Debug.DrawRay(CarManager.instance.waypoints[cIndex2].p.position, Vector3.up * 1000, Color.red);
+        Debug.DrawLine(transform.position, closest, Vector4.Lerp(Color.red, Color.green, speedFac));
+
+        return output;
     }
 
     float Spring(Transform a, float b, float c, float strength, AnimationCurve tireGrip, bool handbreak, Transform wheel, TrailRenderer r, ParticleSystem p, AudioSource audio)
@@ -260,7 +286,7 @@ public class car : MonoBehaviour
             float tmpGripMultiplyer = 1;
             if (!hasBeenUsed)
             {
-                tmpGripMultiplyer = 2;
+                tmpGripMultiplyer = 3;
             }
 
             Vector3 steeringDir = a.right;

@@ -1970,6 +1970,11 @@ MonoBehaviour:
   Speed: 5
   sensitivity: 0.1
   activeCar: {fileID: 719386646}
+  scenes:
+  - 02
+  - 03
+  - 01
+  - 01
   inCar: 1
   camRotator: {fileID: 926908756}
   Explosion: {fileID: 7486201725335980691, guid: 8624c503887f4a345a1d8627242fef9c,
@@ -1978,6 +1983,7 @@ MonoBehaviour:
   explosionForce: 40
   gameOver: {fileID: 600159047}
   menuButton: {fileID: 1264729018}
+  swooshVolume: 0
 --- !u!4 &798462400
 Transform:
   m_ObjectHideFlags: 0
